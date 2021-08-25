@@ -1,0 +1,14 @@
+FROM node:12 AS buildstage
+WORKDIR /app
+RUN git clone https://github.com/yefei0423/react-app.git &&\
+	cd react-app &&\
+	yarn install &&\
+	yarn build
+
+FROM nginx:alpine as runstage
+COPY --from=buildstage /app/react-app/build /usr/share/nginx/html
+RUN chmod -R 770 /var/cache/nginx /var/run /var/log/nginx &&\
+	chgrp -R 0 /etc/nginx &&\
+	chmod -R g=u /etc/nginx &&\
+	sed -i.bak 's/^ *listen *80/listen  8080/' /etc/nginx/conf.d/default.conf
+EXPOSE 8080
